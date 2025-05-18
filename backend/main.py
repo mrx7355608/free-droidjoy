@@ -11,7 +11,7 @@ CORS(app)
 gamepad = vg.VX360Gamepad()
 
 
-buttons = {
+buttons_dict = {
     "A": vg.XUSB_BUTTON.XUSB_GAMEPAD_A,
     "B": vg.XUSB_BUTTON.XUSB_GAMEPAD_B,
     "X": vg.XUSB_BUTTON.XUSB_GAMEPAD_X,
@@ -22,10 +22,10 @@ buttons = {
     "START": vg.XUSB_BUTTON.XUSB_GAMEPAD_START,
     "LS": vg.XUSB_BUTTON.XUSB_GAMEPAD_LEFT_THUMB,
     "RS": vg.XUSB_BUTTON.XUSB_GAMEPAD_RIGHT_THUMB,
-    "UP": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP,
-    "DOWN": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN,
-    "LEFT": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_LEFT,
-    "RIGHT": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT
+    "DPAD-UP": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP,
+    "DPAD-DOWN": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN,
+    "DPAD-LEFT": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_LEFT,
+    "DPAD-RIGHT": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT
 }
 
 def press_button(button):
@@ -36,6 +36,24 @@ def press_button(button):
     gamepad.release_button(button=key)
     gamepad.update()
 
+def scale_axis(x, y):
+    scaled_x = int(x * 32767)
+    scaled_y = int(-y * 32767)  # Note the negative sign to invert Y-axis
+    return scaled_x, scaled_y
+
+@app.route('/joystick', methods=['POST'])
+def joystick():
+    data = request.get_json()
+    
+    # Get the X and Y values
+    lx, ly = scale_axis(data['x'], data['y'])
+    print(f"x: {lx}, y: {ly}")
+
+    gamepad.left_joystick(x_value=lx, y_value=ly)
+    gamepad.update()
+    
+    return "OK"
+
 
 @app.route('/button', methods=['POST'])
 def button():    
@@ -43,25 +61,6 @@ def button():
     button = data.get("button")
     press_button(button.upper())
 
-    return "OK"
-
-@app.route('/joystick', methods=['POST'])
-def joystick():
-    data = request.get_json()
-    
-    # Get the X and Y values
-    x = data.get('x', 0)
-    y = data.get('y', 0)
-    print(f"x: {x}, y: {y}")
-
-    # Convert X, Y to a range of 0 to 32767 (for joystick movement)
-    lx = int((x + 1) * 16383)  # 0 to 32767 for X axis
-    ly = int((y + 1) * 16383)  # 0 to 32767 for Y axis
-
-    # Set the X and Y axes (left stick)
-    vj.set_axis(pyvjoy.HID_USAGE_X, lx)
-    vj.set_axis(pyvjoy.HID_USAGE_Y, ly)
-    
     return "OK"
 
 if __name__ == '__main__':
