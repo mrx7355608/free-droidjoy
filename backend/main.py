@@ -41,23 +41,33 @@ def scale_axis(x, y):
     scaled_y = int(-y * 32767)  # Note the negative sign to invert Y-axis
     return scaled_x, scaled_y
 
+def simulate_joystick(x, y, side):
+    jx, jy = scale_axis(x, y)
+    if side == "left":
+        gamepad.left_joystick(x_value=jx, y_value=jy)
+        gamepad.update()
+    elif side == "right":
+        gamepad.right_joystick(x_value=jx, y_value=jy)
+        gamepad.update()
+
+
 @app.route('/joystick', methods=['POST'])
 def joystick():
     data = request.get_json()
-    
-    # Get the X and Y values
-    lx, ly = scale_axis(data['x'], data['y'])
-    print(f"x: {lx}, y: {ly}")
 
-    gamepad.left_joystick(x_value=lx, y_value=ly)
-    gamepad.update()
-    
+    x = data["x"]
+    y = data["y"]
+    side = data["side"]
+
+    simulate_joystick(x, y, side)
+
     return "OK"
 
 
 @app.route('/button', methods=['POST'])
 def button():    
     data = request.get_json()
+
     button = data.get("button")
     press_button(button.upper())
 

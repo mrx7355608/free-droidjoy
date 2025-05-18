@@ -93,7 +93,7 @@ const XboxController = () => {
           </View>
         </View>
 
-        {/* Top Side */}
+        {/* Left Side */}
         <View style={styles.leftSide}>
           {/* D-Pad */}
           <View style={styles.dPadContainer}>
@@ -145,7 +145,7 @@ const XboxController = () => {
 
           {/* Left Analog Stick */}
           <GestureHandlerRootView style={{ flex: 1 }}>
-            <Joystick />
+            <Joystick side="left" />
           </GestureHandlerRootView>
         </View>
 
@@ -154,7 +154,7 @@ const XboxController = () => {
           {/* Xbox Button */}
           <Pressable
             style={styles.xboxButtonContainer}
-            onPress={() => handleButtonPress("xbox")}
+            onPress={() => handleButtonPress("start")}
           >
             <View
               style={[
@@ -176,7 +176,7 @@ const XboxController = () => {
           <View style={styles.menuButtonsContainer}>
             <Pressable
               style={styles.menuButton}
-              onPress={() => handleButtonPress("menu")}
+              onPress={() => handleButtonPress("back")}
             >
               <View
                 style={[
@@ -203,7 +203,7 @@ const XboxController = () => {
           </View>
         </View>
 
-        {/* Bottom Side */}
+        {/* Right Side */}
         <View style={styles.rightSide}>
           {/* Action Buttons */}
           <View style={styles.actionButtonsContainer}>
@@ -266,13 +266,9 @@ const XboxController = () => {
           </View>
 
           {/* Right Analog Stick */}
-          <View style={styles.analogStickContainer}>
-            <View style={styles.analogStickBase}>
-              <View style={styles.analogStick}>
-                <View style={styles.analogStickInner} />
-              </View>
-            </View>
-          </View>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <Joystick side="right" />
+          </GestureHandlerRootView>
         </View>
       </View>
     </View>

@@ -4,29 +4,47 @@ import { StyleSheet } from "react-native";
 export default function Joystick({ side }) {
   const onTouchEvent = (event) => {
     if (event.eventType === "pan") {
-      const { ratio } = event;
       const data = {
-        x: ratio.x,
-        y: ratio.y,
+        x: event.ratio.x,
+        y: event.ratio.y,
         side: side,
       };
-      try {
-        fetch("http://192.168.100.6:5000/joystick", {
-          method: "post",
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((res) => console.log({ res }));
-      } catch (err) {
-        console.error(err);
-      }
+
+      sendJoystickCoordinatse(data);
+      return;
+    }
+
+    // Reset when joystick is released
+    if (event.eventType === "end") {
+      const data = {
+        x: event.ratio.x,
+        y: event.ratio.y,
+        side: side,
+      };
+
+      sendJoystickCoordinatse(data);
+      return;
+    }
+  };
+
+  const sendJoystickCoordinatse = async (data) => {
+    try {
+      const options = {
+        method: "post",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      await fetch("http://192.168.100.6:5000/joystick", options);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   return (
     <AxisPad
-      id={"pad-2"}
+      id={`${side}-pad`}
       size={150}
       padBackgroundStyle={styles.analogStick}
       stickStyle={styles.analogStick}
