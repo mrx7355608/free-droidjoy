@@ -73,5 +73,31 @@ def button():
 
     return "OK"
 
+    
+
+@app.route('/trigger', methods=['POST'])
+def trigger():
+    data = request.get_json()
+    trigger_button = data["trigger"]
+    action = data["action"]
+
+    # Handle right trigger
+    if trigger_button == "RT":
+        if action == "press":
+            gamepad.right_trigger(255)
+        elif action == "release":
+            gamepad.right_trigger(0)
+        gamepad.update()
+
+    # Handle left trigger
+    elif trigger_button == "LT":
+        if action == "press":
+            gamepad.left_trigger(255)
+        elif action == "release":
+            gamepad.left_trigger(0)
+        gamepad.update()
+
+    return "OK"
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

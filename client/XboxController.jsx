@@ -1,18 +1,10 @@
-import { useState } from "react";
 import { View, StyleSheet, Pressable, Text } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import Joystick from "./Joystick";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const XboxController = () => {
-  const [activeButton, setActiveButton] = useState(null);
-
-  const onButtonPress = (button) => console.log(`${button} pressed`);
-
   const handleButtonPress = (button) => {
-    setActiveButton(button);
-    onButtonPress(button);
-
     try {
       fetch("http://192.168.100.6:5000/button", {
         method: "post",
@@ -23,255 +15,188 @@ const XboxController = () => {
       });
     } catch (err) {
       console.error(err);
-    } finally {
-      setActiveButton(null);
+    }
+  };
+
+  const handleTrigger = async (triggerBtn, action) => {
+    try {
+      fetch("http://192.168.100.6:5000/trigger", {
+        method: "post",
+        body: JSON.stringify({ trigger: triggerBtn, action: action }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (err) {
+      console.error(err);
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Controller Body */}
-      <View style={styles.controllerBody}>
-        {/* Shoulder Buttons */}
-        <View style={styles.shoulderButtonsContainer}>
-          <View style={styles.shoulderSide}>
-            <Pressable
-              style={styles.shoulderButton}
-              onPress={() => handleButtonPress("LB")}
-            >
-              <View
-                style={[
-                  styles.shoulderButtonInner,
-                  activeButton === "LB" && styles.activeButton,
-                ]}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        {/* Controller Body */}
+        <View style={styles.controllerBody}>
+          {/* Shoulder Buttons */}
+          <View style={styles.shoulderButtonsContainer}>
+            <View style={styles.shoulderSide}>
+              <Pressable
+                style={styles.shoulderButton}
+                onPress={() => handleButtonPress("LB")}
               >
-                <Text style={styles.shoulderButtonText}>LB</Text>
-              </View>
-            </Pressable>
-            <Pressable
-              style={styles.triggerButton}
-              onPress={() => handleButtonPress("LT")}
-            >
-              <View
-                style={[
-                  styles.triggerButtonInner,
-                  activeButton === "LT" && styles.activeButton,
-                ]}
+                <View style={[styles.shoulderButtonInner]}>
+                  <Text style={styles.shoulderButtonText}>LB</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                style={styles.triggerButton}
+                onPressIn={() => handleTrigger("RT", "press")}
+                onPressOut={() => handleTrigger("RT", "release")}
               >
-                <Text style={styles.shoulderButtonText}>LT</Text>
-              </View>
-            </Pressable>
-          </View>
-          <View style={styles.shoulderMiddle} />
-          <View style={styles.shoulderSide}>
-            <Pressable
-              style={styles.shoulderButton}
-              onPress={() => handleButtonPress("RB")}
-            >
-              <View
-                style={[
-                  styles.shoulderButtonInner,
-                  activeButton === "RB" && styles.activeButton,
-                ]}
-              >
-                <Text style={styles.shoulderButtonText}>RB</Text>
-              </View>
-            </Pressable>
-            <Pressable
-              style={styles.triggerButton}
-              onPress={() => handleButtonPress("RT")}
-            >
-              <View
-                style={[
-                  styles.triggerButtonInner,
-                  activeButton === "RT" && styles.activeButton,
-                ]}
-              >
-                <Text style={styles.shoulderButtonText}>RT</Text>
-              </View>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Left Side */}
-        <View style={styles.leftSide}>
-          {/* D-Pad */}
-          <View style={styles.dPadContainer}>
-            <Pressable
-              style={[styles.dPadButton, styles.dPadUp]}
-              onPress={() => handleButtonPress("dpad-up")}
-            >
-              <View
-                style={[
-                  styles.dPadButtonInner,
-                  activeButton === "dpad-up" && styles.activeButton,
-                ]}
-              />
-            </Pressable>
-            <Pressable
-              style={[styles.dPadButton, styles.dPadRight]}
-              onPress={() => handleButtonPress("dpad-right")}
-            >
-              <View
-                style={[
-                  styles.dPadButtonInner,
-                  activeButton === "dpad-right" && styles.activeButton,
-                ]}
-              />
-            </Pressable>
-            <Pressable
-              style={[styles.dPadButton, styles.dPadDown]}
-              onPress={() => handleButtonPress("dpad-down")}
-            >
-              <View
-                style={[
-                  styles.dPadButtonInner,
-                  activeButton === "dpad-down" && styles.activeButton,
-                ]}
-              />
-            </Pressable>
-            <Pressable
-              style={[styles.dPadButton, styles.dPadLeft]}
-              onPress={() => handleButtonPress("dpad-left")}
-            >
-              <View
-                style={[
-                  styles.dPadButtonInner,
-                  activeButton === "dpad-left" && styles.activeButton,
-                ]}
-              />
-            </Pressable>
-          </View>
-
-          {/* Left Analog Stick */}
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <Joystick side="left" />
-          </GestureHandlerRootView>
-        </View>
-
-        {/* Center Section */}
-        <View style={styles.centerSection}>
-          {/* Xbox Button */}
-          <Pressable
-            style={styles.xboxButtonContainer}
-            onPress={() => handleButtonPress("start")}
-          >
-            <View
-              style={[
-                styles.xboxButton,
-                activeButton === "xbox" && styles.activeXboxButton,
-              ]}
-            >
-              <Svg height="24" width="24" viewBox="0 0 24 24">
-                <Circle cx="12" cy="12" r="10" fill="#107C10" />
-                <Path
-                  d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8 S16.41,20,12,20z"
-                  fill="#FFFFFF"
-                />
-              </Svg>
+                <View style={[styles.triggerButtonInner]}>
+                  <Text style={styles.shoulderButtonText}>LT</Text>
+                </View>
+              </Pressable>
             </View>
-          </Pressable>
-
-          {/* Menu Buttons */}
-          <View style={styles.menuButtonsContainer}>
-            <Pressable
-              style={styles.menuButton}
-              onPress={() => handleButtonPress("back")}
-            >
-              <View
-                style={[
-                  styles.menuButtonInner,
-                  activeButton === "menu" && styles.activeButton,
-                ]}
+            <View style={styles.shoulderMiddle} />
+            <View style={styles.shoulderSide}>
+              <Pressable
+                style={styles.shoulderButton}
+                onPress={() => handleButtonPress("RB")}
               >
-                <Text style={styles.menuButtonText}>≡</Text>
-              </View>
-            </Pressable>
-            <Pressable
-              style={styles.menuButton}
-              onPress={() => handleButtonPress("view")}
-            >
-              <View
-                style={[
-                  styles.menuButtonInner,
-                  activeButton === "view" && styles.activeButton,
-                ]}
+                <View style={[styles.shoulderButtonInner]}>
+                  <Text style={styles.shoulderButtonText}>RB</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                style={styles.triggerButton}
+                onPressIn={() => handleTrigger("RT", "press")}
+                onPressOut={() => handleTrigger("RT", "release")}
               >
-                <Text style={styles.menuButtonText}>⧉</Text>
-              </View>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Right Side */}
-        <View style={styles.rightSide}>
-          {/* Action Buttons */}
-          <View style={styles.actionButtonsContainer}>
-            <Pressable
-              style={[styles.actionButton, styles.buttonY]}
-              onPress={() => handleButtonPress("Y")}
-            >
-              <View
-                style={[
-                  styles.actionButtonInner,
-                  styles.buttonYInner,
-                  activeButton === "Y" && styles.activeButton,
-                ]}
-              >
-                <Text style={styles.buttonText}>Y</Text>
-              </View>
-            </Pressable>
-            <Pressable
-              style={[styles.actionButton, styles.buttonB]}
-              onPress={() => handleButtonPress("B")}
-            >
-              <View
-                style={[
-                  styles.actionButtonInner,
-                  styles.buttonBInner,
-                  activeButton === "B" && styles.activeButton,
-                ]}
-              >
-                <Text style={styles.buttonText}>B</Text>
-              </View>
-            </Pressable>
-            <Pressable
-              style={[styles.actionButton, styles.buttonA]}
-              onPress={() => handleButtonPress("A")}
-            >
-              <View
-                style={[
-                  styles.actionButtonInner,
-                  styles.buttonAInner,
-                  activeButton === "A" && styles.activeButton,
-                ]}
-              >
-                <Text style={styles.buttonText}>A</Text>
-              </View>
-            </Pressable>
-            <Pressable
-              style={[styles.actionButton, styles.buttonX]}
-              onPress={() => handleButtonPress("X")}
-            >
-              <View
-                style={[
-                  styles.actionButtonInner,
-                  styles.buttonXInner,
-                  activeButton === "X" && styles.activeButton,
-                ]}
-              >
-                <Text style={styles.buttonText}>X</Text>
-              </View>
-            </Pressable>
+                <View style={[styles.triggerButtonInner]}>
+                  <Text style={styles.shoulderButtonText}>RT</Text>
+                </View>
+              </Pressable>
+            </View>
           </View>
 
-          {/* Right Analog Stick */}
-          <GestureHandlerRootView style={{ flex: 1 }}>
+          {/* Left Side */}
+          <View style={styles.leftSide}>
+            {/* D-Pad */}
+            <View style={styles.dPadContainer}>
+              <Pressable
+                style={[styles.dPadButton, styles.dPadUp]}
+                onPress={() => handleButtonPress("dpad-up")}
+              >
+                <View style={[styles.dPadButtonInner]} />
+              </Pressable>
+              <Pressable
+                style={[styles.dPadButton, styles.dPadRight]}
+                onPress={() => handleButtonPress("dpad-right")}
+              >
+                <View style={[styles.dPadButtonInner]} />
+              </Pressable>
+              <Pressable
+                style={[styles.dPadButton, styles.dPadDown]}
+                onPress={() => handleButtonPress("dpad-down")}
+              >
+                <View style={[styles.dPadButtonInner]} />
+              </Pressable>
+              <Pressable
+                style={[styles.dPadButton, styles.dPadLeft]}
+                onPress={() => handleButtonPress("dpad-left")}
+              >
+                <View style={[styles.dPadButtonInner]} />
+              </Pressable>
+            </View>
+
+            {/* Left Analog Stick */}
+            <Joystick side="left" />
+          </View>
+
+          {/* Center Section */}
+          <View style={styles.centerSection}>
+            {/* Xbox Button */}
+            <Pressable
+              style={styles.xboxButtonContainer}
+              onPress={() => handleButtonPress("start")}
+            >
+              <View style={[styles.xboxButton]}>
+                <Svg height="24" width="24" viewBox="0 0 24 24">
+                  <Circle cx="12" cy="12" r="10" fill="#107C10" />
+                  <Path
+                    d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8 S16.41,20,12,20z"
+                    fill="#FFFFFF"
+                  />
+                </Svg>
+              </View>
+            </Pressable>
+
+            {/* Menu Buttons */}
+            <View style={styles.menuButtonsContainer}>
+              <Pressable
+                style={styles.menuButton}
+                onPress={() => handleButtonPress("back")}
+              >
+                <View style={[styles.menuButtonInner]}>
+                  <Text style={styles.menuButtonText}>≡</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                style={styles.menuButton}
+                onPress={() => handleButtonPress("view")}
+              >
+                <View style={[styles.menuButtonInner]}>
+                  <Text style={styles.menuButtonText}>⧉</Text>
+                </View>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Right Side */}
+          <View style={styles.rightSide}>
+            {/* Action Buttons */}
+            <View style={styles.actionButtonsContainer}>
+              <Pressable
+                style={[styles.actionButton, styles.buttonY]}
+                onPress={() => handleButtonPress("Y")}
+              >
+                <View style={[styles.actionButtonInner, styles.buttonYInner]}>
+                  <Text style={styles.buttonText}>Y</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                style={[styles.actionButton, styles.buttonB]}
+                onPress={() => handleButtonPress("B")}
+              >
+                <View style={[styles.actionButtonInner, styles.buttonBInner]}>
+                  <Text style={styles.buttonText}>B</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                style={[styles.actionButton, styles.buttonA]}
+                onPress={() => handleButtonPress("A")}
+              >
+                <View style={[styles.actionButtonInner, styles.buttonAInner]}>
+                  <Text style={styles.buttonText}>A</Text>
+                </View>
+              </Pressable>
+              <Pressable
+                style={[styles.actionButton, styles.buttonX]}
+                onPress={() => handleButtonPress("X")}
+              >
+                <View style={[styles.actionButtonInner, styles.buttonXInner]}>
+                  <Text style={styles.buttonText}>X</Text>
+                </View>
+              </Pressable>
+            </View>
+
+            {/* Right Analog Stick */}
             <Joystick side="right" />
-          </GestureHandlerRootView>
+          </View>
         </View>
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -499,9 +424,6 @@ const styles = StyleSheet.create({
   shoulderButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
-  },
-  activeButton: {
-    backgroundColor: "#4D4D4D",
   },
 });
 
