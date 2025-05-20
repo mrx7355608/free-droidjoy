@@ -28,12 +28,13 @@ buttons_dict = {
     "DPAD-RIGHT": vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_RIGHT
 }
 
-def press_button(button):
+def press_button(button, action):
     key = buttons_dict[button]
-    gamepad.press_button(button=key)
-    gamepad.update()
-    time.sleep(0.1)
-    gamepad.release_button(button=key)
+    if action == "press":
+        gamepad.press_button(button=key)
+    elif action == "release":
+        gamepad.release_button(button=key)
+
     gamepad.update()
 
 def scale_axis(x, y):
@@ -67,13 +68,12 @@ def joystick():
 @app.route('/button', methods=['POST'])
 def button():    
     data = request.get_json()
-
     button = data.get("button")
-    press_button(button.upper())
-
+    action = data.get("action")
+    press_button(button.upper(), action)
     return "OK"
 
-    
+
 
 @app.route('/trigger', methods=['POST'])
 def trigger():
