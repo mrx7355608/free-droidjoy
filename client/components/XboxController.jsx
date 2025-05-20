@@ -2,36 +2,12 @@ import { View, StyleSheet, Pressable, Text } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 import Joystick from "./Joystick";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import ActionButton from "./ActionButton";
+import DpadButton from "./DpadButton";
+import { handleButtonPress } from "../utils";
+import ShoulderButton from "./ShoulderButton";
 
 const XboxController = () => {
-  const handleButtonPress = (button) => {
-    try {
-      fetch("http://192.168.100.6:5000/button", {
-        method: "post",
-        body: JSON.stringify({ button }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleTrigger = async (triggerBtn, action) => {
-    try {
-      fetch("http://192.168.100.6:5000/trigger", {
-        method: "post",
-        body: JSON.stringify({ trigger: triggerBtn, action: action }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
@@ -40,43 +16,29 @@ const XboxController = () => {
           {/* Shoulder Buttons */}
           <View style={styles.shoulderButtonsContainer}>
             <View style={styles.shoulderSide}>
-              <Pressable
-                style={styles.shoulderButton}
-                onPress={() => handleButtonPress("LB")}
-              >
-                <View style={[styles.shoulderButtonInner]}>
-                  <Text style={styles.shoulderButtonText}>LB</Text>
-                </View>
-              </Pressable>
-              <Pressable
-                style={styles.triggerButton}
-                onPressIn={() => handleTrigger("RT", "press")}
-                onPressOut={() => handleTrigger("RT", "release")}
-              >
-                <View style={[styles.triggerButtonInner]}>
-                  <Text style={styles.shoulderButtonText}>LT</Text>
-                </View>
-              </Pressable>
+              <ShoulderButton
+                btnStyles={styles.shoulderButton}
+                btnInnerStyles={[styles.shoulderButtonInner]}
+                button="LB"
+              />
+              <ShoulderButton
+                btnStyles={styles.triggerButton}
+                btnInnerStyles={[styles.triggerButtonInner]}
+                button="LT"
+              />
             </View>
             <View style={styles.shoulderMiddle} />
             <View style={styles.shoulderSide}>
-              <Pressable
-                style={styles.shoulderButton}
-                onPress={() => handleButtonPress("RB")}
-              >
-                <View style={[styles.shoulderButtonInner]}>
-                  <Text style={styles.shoulderButtonText}>RB</Text>
-                </View>
-              </Pressable>
-              <Pressable
-                style={styles.triggerButton}
-                onPressIn={() => handleTrigger("RT", "press")}
-                onPressOut={() => handleTrigger("RT", "release")}
-              >
-                <View style={[styles.triggerButtonInner]}>
-                  <Text style={styles.shoulderButtonText}>RT</Text>
-                </View>
-              </Pressable>
+              <ShoulderButton
+                btnStyles={styles.shoulderButton}
+                btnInnerStyles={[styles.shoulderButtonInner]}
+                button="RB"
+              />
+              <ShoulderButton
+                btnStyles={styles.triggerButton}
+                btnInnerStyles={[styles.triggerButtonInner]}
+                button="RT"
+              />
             </View>
           </View>
 
@@ -84,30 +46,22 @@ const XboxController = () => {
           <View style={styles.leftSide}>
             {/* D-Pad */}
             <View style={styles.dPadContainer}>
-              <Pressable
-                style={[styles.dPadButton, styles.dPadUp]}
-                onPress={() => handleButtonPress("dpad-up")}
-              >
-                <View style={[styles.dPadButtonInner]} />
-              </Pressable>
-              <Pressable
-                style={[styles.dPadButton, styles.dPadRight]}
-                onPress={() => handleButtonPress("dpad-right")}
-              >
-                <View style={[styles.dPadButtonInner]} />
-              </Pressable>
-              <Pressable
-                style={[styles.dPadButton, styles.dPadDown]}
-                onPress={() => handleButtonPress("dpad-down")}
-              >
-                <View style={[styles.dPadButtonInner]} />
-              </Pressable>
-              <Pressable
-                style={[styles.dPadButton, styles.dPadLeft]}
-                onPress={() => handleButtonPress("dpad-left")}
-              >
-                <View style={[styles.dPadButtonInner]} />
-              </Pressable>
+              <DpadButton
+                dpadStyles={[styles.dPadButton, styles.dPadUp]}
+                dpadButton={"dpad-up"}
+              />
+              <DpadButton
+                dpadStyles={[styles.dPadButton, styles.dPadRight]}
+                dpadButton={"dpad-right"}
+              />
+              <DpadButton
+                dpadStyles={[styles.dPadButton, styles.dPadDown]}
+                dpadButton={"dpad-down"}
+              />
+              <DpadButton
+                dpadStyles={[styles.dPadButton, styles.dPadLeft]}
+                dpadButton={"dpad-left"}
+              />
             </View>
 
             {/* Left Analog Stick */}
@@ -142,6 +96,7 @@ const XboxController = () => {
                   <Text style={styles.menuButtonText}>≡</Text>
                 </View>
               </Pressable>
+
               <Pressable
                 style={styles.menuButton}
                 onPress={() => handleButtonPress("view")}
@@ -157,38 +112,26 @@ const XboxController = () => {
           <View style={styles.rightSide}>
             {/* Action Buttons */}
             <View style={styles.actionButtonsContainer}>
-              <Pressable
-                style={[styles.actionButton, styles.buttonY]}
-                onPress={() => handleButtonPress("Y")}
-              >
-                <View style={[styles.actionButtonInner, styles.buttonYInner]}>
-                  <Text style={styles.buttonText}>Y</Text>
-                </View>
-              </Pressable>
-              <Pressable
-                style={[styles.actionButton, styles.buttonB]}
-                onPress={() => handleButtonPress("B")}
-              >
-                <View style={[styles.actionButtonInner, styles.buttonBInner]}>
-                  <Text style={styles.buttonText}>B</Text>
-                </View>
-              </Pressable>
-              <Pressable
-                style={[styles.actionButton, styles.buttonA]}
-                onPress={() => handleButtonPress("A")}
-              >
-                <View style={[styles.actionButtonInner, styles.buttonAInner]}>
-                  <Text style={styles.buttonText}>A</Text>
-                </View>
-              </Pressable>
-              <Pressable
-                style={[styles.actionButton, styles.buttonX]}
-                onPress={() => handleButtonPress("X")}
-              >
-                <View style={[styles.actionButtonInner, styles.buttonXInner]}>
-                  <Text style={styles.buttonText}>X</Text>
-                </View>
-              </Pressable>
+              <ActionButton
+                button="Y"
+                stylesOuter={[styles.actionButton, styles.buttonY]}
+                stylesInner={[styles.actionButtonInner, styles.buttonYInner]}
+              />
+              <ActionButton
+                button="B"
+                stylesOuter={[styles.actionButton, styles.buttonB]}
+                stylesInner={[styles.actionButtonInner, styles.buttonBInner]}
+              />
+              <ActionButton
+                button="A"
+                stylesOuter={[styles.actionButton, styles.buttonA]}
+                stylesInner={[styles.actionButtonInner, styles.buttonAInner]}
+              />
+              <ActionButton
+                button="X"
+                stylesOuter={[styles.actionButton, styles.buttonX]}
+                stylesInner={[styles.actionButtonInner, styles.buttonXInner]}
+              />
             </View>
 
             {/* Right Analog Stick */}
@@ -200,7 +143,7 @@ const XboxController = () => {
   );
 };
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
@@ -216,6 +159,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
+  },
+  triggerButton: {
+    width: 80,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  triggerButtonInner: {
+    width: 75,
+    height: 35,
+    backgroundColor: "#2D2D2D",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
   leftSide: {
     width: "30%",
@@ -249,12 +206,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     justifyContent: "center",
     alignItems: "center",
-  },
-  dPadButtonInner: {
-    width: 36,
-    height: 36,
-    backgroundColor: "#2D2D2D",
-    borderRadius: 4,
   },
   dPadUp: {
     top: 0,
@@ -400,20 +351,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   shoulderButtonInner: {
-    width: 75,
-    height: 35,
-    backgroundColor: "#2D2D2D",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  triggerButton: {
-    width: 80,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  triggerButtonInner: {
     width: 75,
     height: 35,
     backgroundColor: "#2D2D2D",

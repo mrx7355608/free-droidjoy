@@ -1,5 +1,5 @@
 import { View, StyleSheet, SafeAreaView } from "react-native";
-import XboxController from "./XboxController";
+import XboxController from "./components/XboxController";
 import * as ScreenOrientation from "expo-screen-orientation";
 
 ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);

@@ -44,7 +44,7 @@ export default function Joystick({ side }) {
 
   return (
     <AxisPad
-      id={`${side}-pad`}
+      id={`${Date.now()}-pad`}
       size={150}
       padBackgroundStyle={styles.analogStick}
       stickStyle={styles.analogStick}
