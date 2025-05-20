@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableHighlight } from "react-native";
+import { Pressable, StyleSheet, Text, TouchableHighlight } from "react-native";
 import { handleButtonPress } from "../utils";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useState } from "react";
@@ -21,13 +21,12 @@ const ActionButton = ({ stylesOuter, stylesInner, button }) => {
     });
 
   return (
-    <GestureDetector
-      style={{ ...stylesOuter, backgroundColor: isPressed ? "#0FF" : "#F0F" }}
-      gesture={tapGesture}
-    >
-      <TouchableHighlight style={stylesInner}>
-        <Text style={styles.buttonText}>{button}</Text>
-      </TouchableHighlight>
+    <GestureDetector gesture={tapGesture}>
+      <Pressable style={stylesOuter}>
+        <View style={stylesInner}>
+          <Text style={styles.buttonText}>{button}</Text>
+        </View>
+      </Pressable>
     </GestureDetector>
   );
 };
