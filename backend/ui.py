@@ -4,82 +4,146 @@ import socket
 import threading
 from datetime import datetime
 from utils import message_queue, condition
+import tkinter.font as tkfont
 
 class ServerUI:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Connected Clients")
-        self.root.geometry("400x400")
-        self.root.configure(bg='#f0f2f5')
+        self.root.title("FreeDroidJoy Server")
+        self.root.geometry("400x500")
+        self.root.configure(bg='#ffffff')
         
-        # Configure style
-        self.style = ttk.Style()
-        self.style.configure("ServerInfo.TLabel", font=("Arial", 12, "bold"), background='#f0f2f5')
-        self.style.configure("Treeview", 
-                           background="#ffffff",
-                           foreground="#333333",
-                           rowheight=40,
-                           fieldbackground="#ffffff")
-        self.style.configure("Treeview.Heading", 
-                           font=("Arial", 10, "bold"),
-                           background="#e3f2fd",
-                           foreground="#1976d2")
-        self.style.map("Treeview",
-                      background=[("selected", "#2196f3")],
-                      foreground=[("selected", "#ffffff")])
+        # Configure fonts
+        self.title_font = tkfont.Font(family="Helvetica", size=16, weight="bold")
+        self.ip_font = tkfont.Font(family="Helvetica", size=12)
+        self.button_font = tkfont.Font(family="Helvetica", size=12, underline=True)
         
-        # Add button style
-        self.style.configure("Disconnect.TButton",
-                           padding=5,
-                           background="#ff4444",
-                           foreground="white")
+        # Main container
+        self.main_frame = tk.Frame(self.root, bg='#ffffff', padx=20, pady=20)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Server info frame
-        self.server_frame = ttk.Frame(self.root, padding="15", style="ServerInfo.TFrame")
-        self.server_frame.pack(fill=tk.X)
-        
+        # Server info
         self.server_ip = self.get_server_ip()
-        self.server_label = ttk.Label(
-            self.server_frame,
+        self.server_label = tk.Label(
+            self.main_frame,
             text=f"Server IP: {self.server_ip}",
-            style="ServerInfo.TLabel"
+            font=self.title_font,
+            fg='#1a73e8',
+            bg='#ffffff'
         )
-        self.server_label.pack(side=tk.LEFT)
+        self.server_label.pack(pady=(0, 10))
         
-        # Client list frame
-        self.client_frame = ttk.Frame(self.root, padding="15")
-        self.client_frame.pack(fill=tk.BOTH, expand=True)
+        # Status label
+        self.status_label = tk.Label(
+            self.main_frame,
+            text="Waiting for connections...",
+            font=self.ip_font,
+            fg='#5f6368',
+            bg='#ffffff'
+        )
+        self.status_label.pack(pady=(0, 20))
         
-        # Create Treeview for clients
-        self.client_tree = ttk.Treeview(
-            self.client_frame,
-            columns=("IP", "Action"),
-            show="headings",
-            height=10,
-            style="Treeview"
+        # Canvas container
+        self.canvas_frame = tk.Frame(self.main_frame, bg='#ffffff')
+        self.canvas_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Canvas and scrollbar
+        self.canvas = tk.Canvas(
+            self.canvas_frame,
+            bg='#ffffff',
+            highlightthickness=0
+        )
+        self.scrollbar = ttk.Scrollbar(
+            self.canvas_frame,
+            orient="vertical",
+            command=self.canvas.yview
         )
         
-        # Configure columns
-        self.client_tree.heading("IP", text="Client IP")
-        self.client_tree.heading("Action", text="")
+        # Configure canvas scrolling
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        self.client_tree.column("IP", width=250, anchor="w")
-        self.client_tree.column("Action", width=100, anchor="center")
+        # Frame for client items
+        self.clients_frame = tk.Frame(self.canvas, bg='#ffffff')
+        self.canvas.create_window((0, 0), window=self.clients_frame, anchor='nw')
         
-        # Add scrollbar
-        scrollbar = ttk.Scrollbar(self.client_frame, orient=tk.VERTICAL, command=self.client_tree.yview)
-        self.client_tree.configure(yscrollcommand=scrollbar.set)
+        # Bind events
+        self.clients_frame.bind('<Configure>', self.on_frame_configure)
+        self.canvas.bind('<Configure>', self.on_canvas_configure)
         
-        # Pack the tree and scrollbar
-        self.client_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # Store connected clients
+        # Store connected clients and their UI elements
         self.connected_clients = {}
+        self.client_frames = {}
         
         # Start update thread
         self.update_thread = threading.Thread(target=self.update_client_list, daemon=True)
         self.update_thread.start()
+
+    def on_frame_configure(self, event=None):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def on_canvas_configure(self, event):
+        # Update the width of the clients frame to match canvas
+        self.canvas.itemconfig(self.canvas.find_withtag("all")[0], width=event.width)
+
+    def create_client_item(self, ip):
+        frame = tk.Frame(self.clients_frame, bg='#ffffff', pady=10)
+        frame.pack(fill=tk.X, padx=5)
+        
+        # IP label
+        ip_label = tk.Label(
+            frame,
+            text=ip,
+            font=self.ip_font,
+            fg='#202124',
+            bg='#ffffff'
+        )
+        ip_label.pack(side=tk.LEFT, padx=10)
+        
+        # Disconnect button
+        disconnect_btn = tk.Label(
+            frame,
+            text="Disconnect",
+            font=self.button_font,
+            fg='#d93025',
+            bg='#ffffff',
+            cursor='hand2'
+        )
+        disconnect_btn.pack(side=tk.RIGHT, padx=10)
+        
+        # Bind click event
+        disconnect_btn.bind('<Button-1>', lambda e, ip=ip: self.on_disconnect(ip))
+        
+        return frame
+
+    def update_client_list(self):
+        while True:
+            # Remove disconnected clients
+            for ip in list(self.client_frames.keys()):
+                if ip not in self.connected_clients:
+                    self.client_frames[ip].destroy()
+                    del self.client_frames[ip]
+            
+            # Add new clients
+            for ip in self.connected_clients:
+                if ip not in self.client_frames:
+                    self.client_frames[ip] = self.create_client_item(ip)
+            
+            # Update status
+            client_count = len(self.connected_clients)
+            status_text = f"{client_count} client{'s' if client_count != 1 else ''} connected"
+            self.status_label.config(text=status_text)
+            
+            # Update every 2 seconds
+            self.root.after(2000, self.update_client_list)
+            break
+
+    def on_disconnect(self, ip):
+        print(f"Disconnect clicked for IP: {ip}")
+        if ip in self.connected_clients:
+            del self.connected_clients[ip]
+            self.update_client_list()
 
     def get_server_ip(self):
         try:
@@ -91,44 +155,6 @@ class ServerUI:
         except:
             return "127.0.0.1"
 
-    def update_client_list(self):
-        while True:
-            # Store current selection
-            selected_items = self.client_tree.selection()
-            selected_ips = [self.client_tree.item(item)["values"][0] for item in selected_items]
-            
-            # Clear existing items
-            for item in self.client_tree.get_children():
-                self.client_tree.delete(item)
-            
-            # Add current clients
-            for ip in self.connected_clients:
-                item = self.client_tree.insert("", tk.END, values=(ip, "Disconnect"))
-                # Restore selection
-                if ip in selected_ips:
-                    self.client_tree.selection_add(item)
-                # Bind click event to the disconnect button
-                self.client_tree.tag_bind(item, '<ButtonRelease-1>', self.on_click)
-            
-            # Update every 2 seconds
-            self.root.after(2000, self.update_client_list)
-            break
-
-    def on_click(self, event):
-        print("Disconnect button clicked")  # Debug print
-
-        # Get the clicked item
-        item = self.client_tree.identify_row(event.y)
-        if item:
-            # Get the column clicked
-            column = self.client_tree.identify_column(event.x)
-            if column == "#2":  # Action column
-                # Get the IP from the first column
-                ip = self.client_tree.item(item)["values"][0]
-                if ip in self.connected_clients:
-                    del self.connected_clients[ip]
-                    self.update_client_list()
-
     def update_client(self, client_ip, status="connected"):
         self.connected_clients[client_ip] = {
             "status": status,
@@ -138,7 +164,7 @@ class ServerUI:
         def background_wait():
             while True:
                 with condition:
-                    condition.wait()  # Wait until notify() is called
+                    condition.wait()
                     ip = message_queue.pop(0)
 
                     if ip in self.connected_clients:
@@ -146,7 +172,6 @@ class ServerUI:
                     else:
                         self.update_client(ip)
                         
-                    # Update the client list when we get a message
                     self.root.after(0, self.update_client_list)
 
         threading.Thread(target=background_wait, daemon=True).start()
