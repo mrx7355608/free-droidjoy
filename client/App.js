@@ -1,16 +1,58 @@
-import { View, StyleSheet, SafeAreaView } from "react-native";
-import XboxController from "./components/XboxController";
-import * as ScreenOrientation from "expo-screen-orientation";
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet } from 'react-native';
 
-ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+// Import screens
+import HomeScreen from './components/screens/HomeScreen';
+import TemplatesScreen from './components/screens/TemplatesScreen';
+import JoystickScreen from './components/screens/JoystickScreen';
+
+const Drawer = createDrawerNavigator();
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <XboxController />
-      </View>
-    </SafeAreaView>
+    <NavigationContainer>
+      <StatusBar style="auto" />
+      <Drawer.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#f5f5f5',
+          },
+          headerTintColor: '#333',
+          drawerStyle: {
+            backgroundColor: '#fff',
+            width: 240,
+          },
+          drawerActiveTintColor: '#2196F3',
+          drawerInactiveTintColor: '#666',
+        }}
+      >
+        <Drawer.Screen 
+          name="Home" 
+          component={HomeScreen}
+          options={{
+            title: 'Home',
+          }}
+        />
+        <Drawer.Screen 
+          name="Templates" 
+          component={TemplatesScreen}
+          options={{
+            title: 'Templates',
+          }}
+        />
+        <Drawer.Screen 
+          name="Joystick" 
+          component={JoystickScreen}
+          options={{
+            title: 'Joystick',
+          }}
+        />
+      </Drawer.Navigator>
+    </NavigationContainer>
   );
 }
 
