@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, TouchableHighlight } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { handleButtonPress } from "../utils";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { useState } from "react";

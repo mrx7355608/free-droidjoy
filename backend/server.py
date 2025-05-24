@@ -18,6 +18,14 @@ def connect():
     return "OK", 200
 
 
+@app.route('/disconnect', methods=['POST'])
+def disconnect():
+    client_ip = request.remote_addr
+    print(f"Client disconnected: {client_ip}")
+    notify_tkinter(client_ip)
+    return "OK", 200
+
+
 ''' UNCOMMENT THIS ON WINDOWS TO SIMULATE A GAMEPAD
 gamepad = vg.VX360Gamepad()
 

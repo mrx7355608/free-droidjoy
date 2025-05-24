@@ -6,8 +6,24 @@ import ActionButton from "./ActionButton";
 import DpadButton from "./DpadButton";
 import { handleButtonPress } from "../utils";
 import ShoulderButton from "./ShoulderButton";
+import { useEffect } from "react";
 
-const XboxController = () => {
+
+const XboxController = ({ ipAddress }) => {
+
+  useEffect(() => {
+    return () => {
+      console.log('Disconnecting...');
+      handleDisconnect();
+    }
+  }, []);
+
+  const handleDisconnect = async () => {
+    await fetch(`http://${ipAddress}:5000/disconnect`, {
+      method: 'POST',
+    });
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>

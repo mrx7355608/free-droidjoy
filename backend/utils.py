@@ -8,6 +8,7 @@ def notify_tkinter(ip):
         message_queue.append(ip)
         condition.notify()
 
+
 def wait_for_new_client(root):
     while True:
         with condition:
