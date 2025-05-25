@@ -1,30 +1,31 @@
-from flask import Flask, request
-from flask_cors import CORS
-import time
-import vgamepad as vg
-import threading
+import socketio
+import eventlet
 from utils import notify_tkinter
 
-# Initialize Flask app
-app = Flask(__name__)
-CORS(app)
+sio = socketio.Server(logger=True, cors_allowed_origins=[
+    'http://localhost:8081',
+])
+app = socketio.WSGIApp(sio)
 
-@app.route('/connect', methods=['POST'])
-def connect():
-    client_ip = request.remote_addr
-    print(f"Client connected: {client_ip}")
-    
-    notify_tkinter(client_ip)
-    return "OK", 200
+@sio.event
+def connect(sid, environ):
+    ip = environ['REMOTE_ADDR']
+    print(f"Client connected: ({ip}, {sid})")
+    notify_tkinter(ip, sid)
+
+@sio.event
+def disconnect(sid, reason):
+    print("Client disconnected:", sid)
+    if reason == sio.reason.CLIENT_DISCONNECT:
+        print('the client disconnected')
+    elif reason == sio.reason.SERVER_DISCONNECT:
+        print('the server disconnected the client')
+    else:
+        print('disconnect reason:', reason)
 
 
-@app.route('/disconnect', methods=['POST'])
-def disconnect():
-    client_ip = request.remote_addr
-    print(f"Client disconnected: {client_ip}")
-    notify_tkinter(client_ip)
-    return "OK", 200
-
+def start_server():
+    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
 
 ''' UNCOMMENT THIS ON WINDOWS TO SIMULATE A GAMEPAD
 gamepad = vg.VX360Gamepad()
@@ -120,6 +121,3 @@ def trigger():
 
 '''
 
-def start_server():
-    app.run(host='0.0.0.0', port=5000)
-    print("Server started")

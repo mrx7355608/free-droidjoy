@@ -1,43 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import XboxController from '../XboxController';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import XboxController from "../XboxController";
+import { createSocket } from "../../socket";
 
 export default function HomeScreen() {
-  const [ipAddress, setIpAddress] = useState('');
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState('');
+  const [ipAddress, setIpAddress] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [isConnected, setIsConnected] = useState(false);
+  const [socket, setSocket] = useState(null);
 
   const handleConnect = async () => {
     if (!ipAddress) {
-      setError('Please enter an IP address');
+      setError("Please enter an IP address");
       return;
     }
 
-    setIsConnecting(true);
-    setError('');
+    setIsLoading(true);
+    setError("");
 
-    try {
-      const response = await fetch(`http://${ipAddress}:5000/connect`, {
-        method: 'POST',
-      });
+    // Connect to the server
+    const sock = createSocket(ipAddress);
+    setSocket(sock);
+    setIsConnected(true);
+    setIsLoading(false);
+  };
 
-      if (!response.ok) {
-        throw new Error('Failed to connect to server');
-      }
-
-      // Handle successful connection
-      console.log('Connected successfully');
-      setIsConnected(true);
-    } catch (err) {
-      setError(err.message || 'Failed to connect to server');
-    } finally {
-      setIsConnecting(false);
-    }
+  const handleForceDisconnect = () => {
+    socket.disconnect();
+    setSocket(null);
+    setIsConnected(false);
   };
 
   if (isConnected) {
-    return <XboxController ipAddress={ipAddress} />;
+    return (
+      <XboxController
+        handleForceDisconnect={handleForceDisconnect}
+        socket={socket}
+      />
+    );
   }
 
   return (
@@ -55,15 +63,18 @@ export default function HomeScreen() {
           keyboardType="numeric"
           autoCapitalize="none"
           autoCorrect={false}
-          editable={!isConnecting}
+          editable={!isLoading}
         />
-        
-        <TouchableOpacity 
-          style={[styles.connectButton, isConnecting && styles.connectButtonDisabled]}
+
+        <TouchableOpacity
+          style={[
+            styles.connectButton,
+            isLoading && styles.connectButtonDisabled,
+          ]}
           onPress={handleConnect}
-          disabled={isConnecting}
+          disabled={isLoading}
         >
-          {isConnecting ? (
+          {isLoading ? (
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.connectButtonText}>Connect</Text>
@@ -71,9 +82,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      {error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : null}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -81,55 +90,55 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginBottom: 30,
   },
   inputContainer: {
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
     marginBottom: 20,
   },
   input: {
-    width: '100%',
+    width: "100%",
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 15,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   connectButton: {
-    width: '100%',
+    width: "100%",
     height: 50,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   connectButtonDisabled: {
-    backgroundColor: '#007AFF80',
+    backgroundColor: "#007AFF80",
   },
   connectButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
-}); 
+});

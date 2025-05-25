@@ -8,21 +8,32 @@ import { handleButtonPress } from "../utils";
 import ShoulderButton from "./ShoulderButton";
 import { useEffect } from "react";
 
-
-const XboxController = ({ ipAddress }) => {
-
+const XboxController = ({ handleForceDisconnect, socket }) => {
   useEffect(() => {
-    return () => {
-      console.log('Disconnecting...');
-      handleDisconnect();
-    }
-  }, []);
-
-  const handleDisconnect = async () => {
-    await fetch(`http://${ipAddress}:5000/disconnect`, {
-      method: 'POST',
+    socket.on("connect", () => {
+      console.log("Connected", socket.id);
     });
-  }
+
+    socket.on("disconnect", (reason) => {
+      console.log("Disconnected from server:", reason);
+    });
+
+    socket.on("hello", (data) => {
+      console.log("Received event:", data);
+    });
+
+    socket.on("force disconnect", () => {
+      console.log("Force disconnected from server");
+      // handleForceDisconnect();
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+      socket.off("force disconnect");
+      socket.disconnect();
+    };
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

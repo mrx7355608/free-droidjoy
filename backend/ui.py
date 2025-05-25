@@ -5,6 +5,7 @@ import threading
 from datetime import datetime
 from utils import message_queue, condition
 import tkinter.font as tkfont
+# from server import disconnect_client
 
 class ServerUI:
     def __init__(self):
@@ -140,10 +141,14 @@ class ServerUI:
             break
 
     def on_disconnect(self, ip):
-        print(f"Disconnect clicked for IP: {ip}")
         if ip in self.connected_clients:
-            del self.connected_clients[ip]
-            self.update_client_list()
+            # Close the socket
+            client_sid = self.connected_clients[ip]['sid']
+            # disconnect_client(client_sid)
+
+            # Remove client from connected clients
+            # del self.connected_clients[ip]
+            # self.update_client_list()
 
     def get_server_ip(self):
         try:
@@ -155,9 +160,10 @@ class ServerUI:
         except:
             return "127.0.0.1"
 
-    def update_client(self, client_ip, status="connected"):
+    def update_client(self, client_ip, status="connected", sid=""):
         self.connected_clients[client_ip] = {
             "status": status,
+            "sid": sid
         }
 
     def wait_for_message(self):
@@ -165,13 +171,8 @@ class ServerUI:
             while True:
                 with condition:
                     condition.wait()
-                    ip = message_queue.pop(0)
-
-                    if ip in self.connected_clients:
-                        del self.connected_clients[ip]
-                    else:
-                        self.update_client(ip)
-                        
+                    client_info = message_queue.pop(0)
+                    self.update_client(client_info['ip'], 'connected', client_info['sid'])
                     self.root.after(0, self.update_client_list)
 
         threading.Thread(target=background_wait, daemon=True).start()
