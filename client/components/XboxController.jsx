@@ -7,8 +7,15 @@ import DpadButton from "./DpadButton";
 import { handleButtonPress } from "../utils";
 import ShoulderButton from "./ShoulderButton";
 import { useEffect } from "react";
+import { lockAsync, OrientationLock } from "expo-screen-orientation";
 
 const XboxController = ({ handleForceDisconnect, socket }) => {
+  // Force landscape maode
+  useEffect(() => {
+    lockAsync(OrientationLock.LANDSCAPE);
+  }, []);
+
+  // Handle socket connection
   useEffect(() => {
     socket.on("connect", () => {
       console.log("Connected", socket.id);
