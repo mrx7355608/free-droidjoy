@@ -16,6 +16,7 @@ const XboxController = ({ handleForceDisconnect, socket }) => {
 
     socket.on("disconnect", (reason) => {
       console.log("Disconnected from server:", reason);
+      handleForceDisconnect();
     });
 
     socket.on("hello", (data) => {
