@@ -1,5 +1,6 @@
 import { AxisPad } from "@fustaro/react-native-axis-pad";
 import { StyleSheet } from "react-native";
+import { getSocket } from "../socket";
 
 export default function Joystick({ side }) {
   const onTouchEvent = (event) => {
@@ -29,14 +30,8 @@ export default function Joystick({ side }) {
 
   const sendJoystickCoordinatse = async (data) => {
     try {
-      const options = {
-        method: "post",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-      await fetch("http://192.168.100.6:5000/joystick", options);
+      const socket = getSocket();
+      socket.emit("joystick", data);
     } catch (err) {
       console.error(err);
     }

@@ -1,13 +1,11 @@
+import { getSocket } from "./socket";
+
 export const handleButtonPress = (button, action) => {
   try {
-    fetch("http://192.168.100.6:5000/button", {
-      method: "post",
-      body: JSON.stringify({ button, action }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const socket = getSocket();
+    socket.emit("button_press", { button, action });
   } catch (err) {
     console.error(err);
+    alert(err.message);
   }
 };
