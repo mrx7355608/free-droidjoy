@@ -3,9 +3,7 @@ import eventlet
 from utils import notify_tkinter
 from xbox_simulator import XboxSimulator
 
-sio = socketio.Server(logger=True, cors_allowed_origins=[
-    'http://localhost:8081',
-])
+sio = socketio.Server(logger=True, cors_allowed_origins='*')
 app = socketio.WSGIApp(sio)
 xbox_simulator = XboxSimulator()
 
@@ -13,7 +11,7 @@ xbox_simulator = XboxSimulator()
 def button_press(sid, data):
     button = data['button']
     action = data['action']
-    xbox_simulator.button_press(button, action)
+    xbox_simulator.button_press(button.upper(), action)
 
 
 @sio.event
@@ -40,8 +38,6 @@ def disconnect(sid, reason):
         print('the server disconnected the client')
     else:
         print('disconnect reason:', reason)
-
-
 
 
 

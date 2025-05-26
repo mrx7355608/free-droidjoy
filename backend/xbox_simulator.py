@@ -21,7 +21,7 @@ class XboxSimulator:
         }
 
     def simulate_joystick(self, x, y, side):
-        jx, jy = scale_axis(x, y)
+        jx, jy = self.scale_axis(x, y)
         if side == "left":
             self.gamepad.left_joystick(x_value=jx, y_value=jy)
         elif side == "right":
@@ -31,10 +31,11 @@ class XboxSimulator:
 
 
     def button_press(self, button, action):
+        print(button, action)
         if button == "RT" or button == "LT":
             self.handle_trigger(button, action)
         else:
-            key = buttons_dict['button']
+            key = self.buttons_dict[button]
             if action == 'press':
                 self.gamepad.press_button(button=key)
             elif action == 'release':
